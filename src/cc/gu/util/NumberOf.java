@@ -10,7 +10,7 @@ public class NumberOf {
 //	final private static String FORMAT_X_0xXp = "(?i)^0x([0-9a-f]+)(\\.[0-9a-f]+)?(p[0-9])$";
 	final private static String FORMAT_X_Xh = "(?i)^([0-9][0-9a-f]*)h$";
 //	final private static String FORMAT_X_Xph = "(?i)^([0-9][0-9a-f]*)(\\.[0-9a-f]+)?(p[0-9])h$";
-	final private static String FORMAT_O_0oO = "^0O([0-7]+)$";
+	final private static String FORMAT_O_0oO = "^(?i)0O([0-7]+)$";
 //	final private static String FORMAT_O_0oOp = "(?i)^0O([0-7]+)(\\.[0-7]+)?(p[0-9])$";
 
 	public static boolean isNumber(Object obj) {
