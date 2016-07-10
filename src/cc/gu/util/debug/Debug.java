@@ -1,4 +1,4 @@
-package cc.gu.util;
+package cc.gu.util.debug;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -10,7 +10,6 @@ abstract public class Debug {
 			return object != null && object != (Integer) 0 && object != (Boolean) false && object != "";
 		}
 	}
-	
 	
 	public interface Light extends Bool{
 		@Override
@@ -68,20 +67,16 @@ abstract public class Debug {
 	final public static int ERROR = 6;
 	final public static int  ALERT = 7;
 	
-	public interface Printer {
-		void print(StackTraceElement[] elements, int level, Object self, Throwable e, String format, Object...args);
+	private static Output output;
+	public static void setOutput(Output output) {
+		Debug.output = output;
 	}
-	
-	private static Printer printer;
-	public static void setPrinter(Printer printer) {
-		Debug.printer = printer;
-	}
-	public static Printer getPrinter() {
-		return printer;
+	public static Output getOutput() {
+		return output;
 	}
 	
 	public static boolean isDebug() {
-		return printer != null;
+		return output != null;
 	}
 	
 	synchronized private static boolean isDebug(StackTraceElement[] elements, int level, Object self, Throwable e, String format,
@@ -120,7 +115,42 @@ abstract public class Debug {
 		if (!isDebug(elements,level, self, e, format, args)) {
 			return;
 		}
-		getPrinter().print(elements, level, self, e, format, args);
+		
+		String src;
+		if (format != null) {
+			if (args != null && args.length > 0) {
+				src = String.format(format, args);
+			} else {
+				src = format;
+			}
+		} else if (args != null) {
+			src = Arrays.toString(args);
+		} else {
+			src = null;
+		}
+		if (self != null) {
+			if (e != null) {
+				if (src != null) {
+					getOutput().output(elements, level, self, e, src);
+				} else {
+					getOutput().output(elements, level, self, e);
+				}
+			} else if (src != null) {
+				getOutput().output(elements, level, self, src);
+			} else {
+				getOutput().output(elements, level, self);
+			}
+		} else if (e != null) {
+			if (src != null) {
+				getOutput().output(elements, level, e, src);
+			} else {
+				getOutput().output(elements, level, e);
+			}
+		} else if (src != null) {
+			getOutput().output(elements, level, src);
+		} else {
+			getOutput().output(elements, level);
+		}
 	}
 	
 	public static void println(int level, Object self, Throwable e, String format) {
