@@ -2,10 +2,11 @@ package cc.gu.util.debug;
 
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class PrintStreamOutput extends FormatOutput {
 	
-	private static Map<PrintStream, PrintStreamOutput> instances;
+	private static Map<PrintStream, PrintStreamOutput> instances = new WeakHashMap<>();
 	
 	synchronized public static PrintStreamOutput getInstance(PrintStream printStream) {
 		PrintStreamOutput instance = instances.get(printStream);

@@ -1,12 +1,15 @@
 package cc.gu.test;
 
+import cc.gu.util.Util;
+import cc.gu.util.debug.ClassLight;
+import cc.gu.util.debug.Debug;
+import cc.gu.util.debug.PrintStreamOutput;
+
 public class CC_Utill {
 	public static void main(String[] args) throws Throwable {
-		try {
-			System.out.println("" + (int)Double.NEGATIVE_INFINITY);
-			System.out.println(Double.parseDouble("" + Double.NEGATIVE_INFINITY));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Debug.setOutput(PrintStreamOutput.getInstance(System.out));
+		Debug.addCurrentLight(new ClassLight(CC_Utill.class, true));
+		Debug.addCurrentLight(new ClassLight(Util.class, true));
+		Debug.d("%s", Util.getNumber("0o77", 3));
 	}
 }
