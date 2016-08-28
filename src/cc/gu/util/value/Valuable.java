@@ -1,9 +1,6 @@
 package cc.gu.util.value;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
-import cc.gu.util.ListenerHandler;
+import cc.gu.util.Observable;
 import cc.gu.util.Util;
 import cc.gu.util.gather.Gatherer;
 import cc.gu.util.occlude.Occluder;
@@ -13,25 +10,28 @@ public class Valuable<V> implements Gatherer<V>{
 	private V value;
 	private long  setTimed = Long.MIN_VALUE;
 	
-	private ListenerHandler<ListenerProxy<?, V>> handler = new ListenerHandler<ListenerProxy<?, V>>() {
+	private Observable<ValuableChangedListener<? super V>> handler = new Observable<ValuableChangedListener<? super V>>() {
 		
 		@Override
-		protected void onCallback(ListenerProxy<?, V> proxy) {
-			proxy.onCallback(get());
+		protected void onObserver(ValuableChangedListener<? super V> listener) {
+			listener.onValueChanged(Valuable.this);
 		}
 	};
 	
 	public void set(V value) {
+		V old = this.value;
 		this.value = value;
 		setTimed = System.nanoTime();
-		handler.callback();
+		if (isChanged(value, old)) {
+			handler.observer();
+		}
 	}
 	
 	public long getSetTimed() {
 		return setTimed;
 	}
 	
-	protected boolean hasChanged(V value, V old) {
+	protected boolean isChanged(V value, V old) {
 		return !Util.equal(value, old);
 	}
 	
@@ -43,55 +43,13 @@ public class Valuable<V> implements Gatherer<V>{
 	public V get(Occluder occluder) {
 		return get();
 	}
-	private static class ListenerProxy<LV, V extends LV> {
-		final OnValueSetListener<LV> listener;
-		final Valuable<V> valuable;
-		
-		ListenerProxy(Valuable<V> valuable, OnValueSetListener<LV> listener) {
-			this.valuable = valuable;
-			this.listener = listener;
-		}
-		
-		void onCallback(V value) {
-			listener.onValueSeted(valuable, value);
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof ListenerProxy) {
-				return listener.equals(((ListenerProxy<?, ?>)obj).listener);
-			}
-			return false;
-		}
-	} 
-	
-	private Map<OnValueSetListener<?>, ListenerProxy<?, V>> callbacks = new WeakHashMap<>();
-
-	private static <LV, V extends LV> ListenerProxy<LV, V> proxy(Valuable<V> valuable, OnValueSetListener<LV> listener) {
-		return new ListenerProxy<>(valuable, listener);
+	public void addOnValueChangeListener(ValuableChangedListener<? super V> listener) {
+		handler.addObserver(listener);
 	}
-	public static <V, VAIUABLE extends V> void addOnValueChangeListener(Valuable<VAIUABLE> valuable, OnValueSetListener<V> listener) {
-		valuable.addOnValueChangeListener(proxy(valuable, listener));
+	public void addWeakOnValueChangeListener(ValuableChangedListener<? super V> listener) {
+		handler.addWeakObserver(listener);
 	}
-	public static <V, VAIUABLE extends V> void addWeakOnValueChangeListener(Valuable<VAIUABLE> valuable, OnValueSetListener<V> listener) {
-		valuable.addWeakOnValueChangeListener(proxy(valuable, listener));
-	}
-	public static <V, VAIUABLE extends V> void removeOnValueChangeListener(Valuable<VAIUABLE> valuable, OnValueSetListener<V> listener) {
-		valuable.removeOnValueChangeListener(proxy(valuable, listener));
-	}
-	
-	private void addOnValueChangeListener(ListenerProxy<?, V> proxy) {
-		callbacks.put(proxy.listener, proxy);
-		handler.addListener(proxy);
-	}
-	
-	private void addWeakOnValueChangeListener(ListenerProxy<?, V> proxy) {
-		callbacks.put(proxy.listener, proxy);
-		handler.addWeakListener(proxy);
-	}
-	
-	private void removeOnValueChangeListener(ListenerProxy<?, V> proxy) {
-		callbacks.remove(proxy.listener, proxy);
-		handler.removeListener(proxy);
+	public void removeOnValueChangeListener(ValuableChangedListener<? super V> listener) {
+		handler.removeObserver(listener);
 	}
 }

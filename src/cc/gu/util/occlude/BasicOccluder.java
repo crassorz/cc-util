@@ -1,6 +1,6 @@
 package cc.gu.util.occlude;
 
-import cc.gu.util.ListenerHandler;
+import cc.gu.util.Observable;
 
 public class BasicOccluder implements Occluder {
 
@@ -14,10 +14,10 @@ public class BasicOccluder implements Occluder {
 		this.occluder = occluder;
 	}
 
-	private ListenerHandler<OnOccludedListener> listenerHandler = new ListenerHandler<OnOccludedListener>() {
+	private Observable<OccludedListener> listenerHandler = new Observable<OccludedListener>() {
 
 		@Override
-		protected void onCallback(OnOccludedListener listener) {
+		protected void onObserver(OccludedListener listener) {
 			listener.onOccluded(occluder, occluded);
 		}
 	};
@@ -48,7 +48,7 @@ public class BasicOccluder implements Occluder {
 		boolean ed = this.occluded != null;
 		this.occluded = occluded;
 		if (!ed) {
-			listenerHandler.callback();
+			listenerHandler.observer();
 		}
 	}
 
@@ -65,17 +65,17 @@ public class BasicOccluder implements Occluder {
 	}
 
 	@Override
-	public void addOnOccludedListener(OnOccludedListener listener) {
-		listenerHandler.addListener(listener);
+	public void addOnOccludedListener(OccludedListener listener) {
+		listenerHandler.addObserver(listener);
 	}
 
 	@Override
-	public void addWeakOnOccludedListener(OnOccludedListener listener) {
-		listenerHandler.addWeakListener(listener);
+	public void addWeakOnOccludedListener(OccludedListener listener) {
+		listenerHandler.addWeakObserver(listener);
 	}
 
 	@Override
-	public void removeOnOccludedListener(OnOccludedListener listener) {
-		listenerHandler.removeListener(listener);
+	public void removeOnOccludedListener(OccludedListener listener) {
+		listenerHandler.removeObserver(listener);
 	}
 }

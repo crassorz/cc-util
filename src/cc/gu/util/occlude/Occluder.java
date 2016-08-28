@@ -14,9 +14,9 @@ public interface Occluder {
 
 	public void occluded() throws OccludedException;
 
-	public void addOnOccludedListener(OnOccludedListener listener);
+	public void addOnOccludedListener(OccludedListener listener);
 
-	public void addWeakOnOccludedListener(OnOccludedListener listener);
+	public void addWeakOnOccludedListener(OccludedListener listener);
 
-	public void removeOnOccludedListener(OnOccludedListener listener);
+	public void removeOnOccludedListener(OccludedListener listener);
 }
