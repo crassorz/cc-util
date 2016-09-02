@@ -24,7 +24,7 @@ public class PrintStreamOutput extends FormatOutput {
 	private PrintStream out;
 
 	@Override
-	public void output(String header, String src, Throwable e) {
+	public synchronized void output(String header, String src, Throwable e) {
 		out.printf(header);
 		if (src != null) {
 			out.printf(" ");
