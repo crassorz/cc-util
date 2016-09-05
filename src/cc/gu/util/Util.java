@@ -2,7 +2,6 @@ package cc.gu.util;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 
 public class Util {
 

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -13,7 +14,11 @@ import java.util.Set;
  */
 public class Build {
 
-
+	
+	public static <K, V> Entry<K, V> entry(K k, V v) {
+		return new BasicEntry<K, V>(k, v);
+	}
+	
     public static <MAP extends Map<K, V>, K, V> MapBuilder<MAP, K, V> buildMap(MAP map) {
         return new MapBuilder<>(map);
     }

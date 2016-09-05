@@ -2,21 +2,23 @@ package cc.gu.util.occlude;
 
 public interface Occluder {
 
-	public void occlude();
+	void occlude();
 
-	public void occlude(String message);
+	void occlude(String message);
 
-	public void occlude(Throwable e);
+	void occlude(Throwable e);
 
-	public void occlude(String message, Throwable e);
+	void occlude(String message, Throwable e);
 
-	public boolean isOccluded();
+	boolean isOccluded();
 
-	public void occluded() throws OccludedException;
+	boolean occluded() throws OccludedException;
 
-	public void addOnOccludedListener(OccludedListener listener);
+	OccludedException getOccludedException();
+	
 
-	public void addWeakOnOccludedListener(OccludedListener listener);
+	void addObserver(OccludedListener observer, boolean weak);
 
-	public void removeOnOccludedListener(OccludedListener listener);
+	void removeObserver(OccludedListener observer);
+
 }

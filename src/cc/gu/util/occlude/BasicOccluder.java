@@ -1,10 +1,29 @@
 package cc.gu.util.occlude;
 
-import cc.gu.util.Observable;
+import cc.gu.util.obserser.Observable;
 
 public class BasicOccluder implements Occluder {
 
 	final private Occluder occluder;
+	final private Observable<OccludedListener, OccludedException> observable = new Observable<OccludedListener, OccludedException>() {
+		@Override
+		public void onObserver(OccludedListener listener, OccludedException e) {
+			listener.onOccluded(occluder, occluded);
+		}
+	};
+	
+	@Override
+	public void addObserver(OccludedListener observer, boolean weak) {
+		observable.addObserver(observer, weak);
+		if (isOccluded()) {
+			observable.onObserver(observer, occluded);
+		}
+	}
+	
+	@Override
+	public void removeObserver(OccludedListener observer) {
+		observable.removeObserver(observer);
+	}
 
 	public BasicOccluder() {
 		occluder = this;
@@ -13,14 +32,6 @@ public class BasicOccluder implements Occluder {
 	public BasicOccluder(Occluder occluder) {
 		this.occluder = occluder;
 	}
-
-	private Observable<OccludedListener> listenerHandler = new Observable<OccludedListener>() {
-
-		@Override
-		protected void onObserver(OccludedListener listener) {
-			listener.onOccluded(occluder, occluded);
-		}
-	};
 
 	private volatile OccludedException occluded;
 
@@ -44,12 +55,24 @@ public class BasicOccluder implements Occluder {
 		occlude(new OccludedException(message, e));
 	}
 
-	private void occlude(OccludedException occluded) {
+	public void occlude(OccludedException occluded) {
+		if (occluded == null) {
+			return;
+		}
 		boolean ed = this.occluded != null;
 		this.occluded = occluded;
 		if (!ed) {
-			listenerHandler.observer();
+			onOcclude(occluded);
 		}
+	}
+	
+	protected void onOcclude(OccludedException occluded) {
+		observable.observer();
+	}
+	
+	@Override
+	public OccludedException getOccludedException() {
+		return occluded;
 	}
 
 	@Override
@@ -58,24 +81,10 @@ public class BasicOccluder implements Occluder {
 	}
 
 	@Override
-	public void occluded() throws OccludedException {
+	public boolean occluded() throws OccludedException {
 		if (isOccluded()) {
 			throw occluded;
 		}
-	}
-
-	@Override
-	public void addOnOccludedListener(OccludedListener listener) {
-		listenerHandler.addObserver(listener);
-	}
-
-	@Override
-	public void addWeakOnOccludedListener(OccludedListener listener) {
-		listenerHandler.addWeakObserver(listener);
-	}
-
-	@Override
-	public void removeOnOccludedListener(OccludedListener listener) {
-		listenerHandler.removeObserver(listener);
+		return false;
 	}
 }

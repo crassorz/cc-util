@@ -5,7 +5,7 @@ import cc.gu.util.debug.Debug.Light;
 public class ClassLight implements Light {
 	
 	final private String klass;
-	public ClassLight(Class klass, boolean inner) {
+	public ClassLight(Class<?> klass, boolean inner) {
 		String name = klass.getName().replaceAll("\\.", "\\\\.").replaceAll("\\$", "\\\\$");
 		if (inner) {
 			this.klass = String.format("^(%s.*)$", name);
