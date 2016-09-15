@@ -11,6 +11,23 @@ public class SingleThreadValuable<T> extends GearingValuable<T> {
 		super(gearing);
 	}
 
+	synchronized public void occlude() {
+		if (sync != null) {
+			Sync syncing = sync;
+			sync = null;
+			syncing.occlude();
+		}
+	}
+
+	@Override
+	synchronized public T set(T value) {
+		value = super.set(value);
+		if (sync != null) {
+			sync.set(value, null);
+		}
+		return value;
+	}
+
 	private Sync sync;
 
 	private class Sync extends ParallelOccluder {
@@ -69,23 +86,6 @@ public class SingleThreadValuable<T> extends GearingValuable<T> {
 		}
 	}
 
-	synchronized public void occlude() {
-		if (sync != null) {
-			Sync syncing = sync;
-			sync = null;
-			syncing.occlude();
-		}
-	}
-
-	@Override
-	synchronized public T set(T value) {
-		value = super.set(value);
-		if (sync != null) {
-			sync.set(value, null);
-		}
-		return value;
-	}
-
 	@Override
 	public T get() throws Throwable {
 		return getFromSingleThread(null);
@@ -109,5 +109,4 @@ public class SingleThreadValuable<T> extends GearingValuable<T> {
 		occluder.occluded();
 		return t;
 	}
-
 }

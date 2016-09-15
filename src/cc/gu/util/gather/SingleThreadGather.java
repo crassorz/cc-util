@@ -2,7 +2,6 @@ package cc.gu.util.gather;
 
 import cc.gu.util.occlude.OccludHandler;
 import cc.gu.util.occlude.OccludedException;
-import cc.gu.util.occlude.OccludedListener;
 import cc.gu.util.occlude.Occluder;
 import cc.gu.util.occlude.ParallelOccluder;
 
@@ -13,25 +12,29 @@ abstract public class SingleThreadGather<T> extends GearingGather<T> implements 
 	}
 
 	private Sync sync;
+
 	private class Sync extends ParallelOccluder {
 		private T t;
 		private boolean got;
 		private Throwable e;
+
 		private synchronized T get(Occluder occluder) throws Throwable {
 			addOccluder(occluder);
 			if (!got) {
+				T t = null;
+				Throwable e = null;
 				got = true;
 				try {
-					occluded();
-					t = SingleThreadGather.super.get(this);
-					occluded();
-				} catch (Throwable e) {
-					this.e = e;
+					t = getFromSingleThread(this);
+				} catch (Throwable throwable) {
+					e = throwable;
 				}
-			}
-			synchronized (SingleThreadGather.this) {
-				if (sync == this) {
-					sync = null;
+				synchronized (SingleThreadGather.this) {
+					this.t = t;
+					this.e = e;
+					if (sync == this) {
+						sync = null;
+					}
 				}
 			}
 			if (e != null) {
@@ -39,40 +42,35 @@ abstract public class SingleThreadGather<T> extends GearingGather<T> implements 
 			}
 			return t;
 		}
-	}
-	
-	@Override
-	public T get() throws Throwable {
-		return get(null);
-	}
-	
-	synchronized public void occlude() {
-		if (sync != null) {
-			Sync syncing = sync;
-			sync = null;
-			syncing.occlude();
+
+		@Override
+		protected void onOcclude(OccludedException occluded) {
+			synchronized (SingleThreadGather.this) {
+				if (sync == this) {
+					sync = null;
+				}
+			}
+			super.onOcclude(occluded);
 		}
 	}
 
 	@Override
+	public T get() throws Throwable {
+		return getFromSingleThread(null);
+	}
+
+	@Override
 	public T get(Occluder occluder) throws OccludedException, Throwable {
+		return getFromSingleThread(occluder);
+	}
+
+	protected T getFromSingleThread(Occluder occluder) throws OccludedException, Throwable {
 		occluder = OccludHandler.notNull(occluder);
 		Sync syncing;
 		synchronized (this) {
 			syncing = sync;
 			if (syncing == null) {
 				sync = syncing = new Sync();
-				sync.addObserver(new OccludedListener() {
-					
-					@Override
-					public void onOccluded(Occluder occluder, OccludedException e) {
-						synchronized (SingleThreadGather.this) {
-							if (sync == occluder) {
-								sync = null;
-							}
-						}
-					}
-				}, false);
 			}
 		}
 		T t = syncing.get(occluder);
